@@ -9,7 +9,7 @@ export default function Navbar() {
   const [isMenuOpen, setIsMenuOpen] = useState(false);
 
   return (
-    <div className="w-full bg-[#0A0A0C] px-4 py-4 md:px-8 md:py-6">
+    <div className="w-full bg-[#0A0A0C] px-4 py-4 md:px-8 md:py-6 sticky top-0 z-1000">
       
       {/* Floating Capsule Navbar Container */}
       <nav className="mx-auto max-w-7xl bg-[#141416]/90 border border-zinc-800/60 backdrop-blur-xl rounded-2xl h-20 flex items-center justify-between px-6 md:px-10 text-white relative shadow-2xl">
