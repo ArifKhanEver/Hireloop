@@ -20,14 +20,12 @@ export default function Stats() {
           />
         </div>
 
-        {/* Central Core Headline Overlayed on Globe */}
         <h2 className="relative z-10 text-2xl sm:text-3xl md:text-4xl font-medium max-w-2xl leading-snug text-white/95 tracking-tight px-4 antialiased">
           Assisting over <span className="font-semibold text-white">15,000 job seekers</span> <br className="hidden sm:inline" /> 
           find their dream positions.
         </h2>
       </div>
 
-      {/* Grid Analytics Cards Container */}
       <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-5 w-full max-w-6xl z-10 mt-16 md:mt-10">
         
         {/* Stat Card 1: Active Jobs */}
