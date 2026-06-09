@@ -1,3 +1,4 @@
+import Features from "@/Components/Features";
 import Hero from "@/Components/Hero";
 import Stats from "@/Components/Stats";
 import Image from "next/image";
@@ -7,6 +8,7 @@ export default function Home() {
     <div className="bg-zinc-50 font-sans dark:bg-black">
       <Hero/>
       <Stats/>
+      <Features/>
     </div>
   );
 }
