@@ -7,11 +7,14 @@ import { FiMail, FiLock, FiUser } from "react-icons/fi";
 import Image from "next/image";
 import logo from '@/assets/images/logo.png';
 import { authClient } from "@/lib/auth-client"; 
-import { redirect } from "next/navigation";
+import { useRouter } from "next/navigation";
+import toast from "react-hot-toast";
+
 
 export default function SignUp() {
-  const [loading, setLoading] = useState(false);
-  const [socialLoading, setSocialLoading] = useState(false);
+    const [loading, setLoading] = useState(false);
+    const [socialLoading, setSocialLoading] = useState(false);
+    const router = useRouter();
 
   const handleSignUp = async (e) => {
     e.preventDefault();
@@ -27,17 +30,19 @@ export default function SignUp() {
         email,
         password,
         name,
-        callbackURL: "/dashboard",
+        callbackURL: "/",
       });
 
       if (error) {
-        alert(error.message || "Something went wrong!");
+        toast.error(error.message || "Something went wrong!");
+      }else {
+        toast.success('Sign up successful')
+        router.push("/signin");
       }
     } catch (err) {
       console.error(err);
     } finally {
       setLoading(false);
-      redirect('/signin')
     }
   };
 
@@ -46,7 +51,7 @@ export default function SignUp() {
     try {
       await authClient.signIn.social({
         provider: "google",
-        callbackURL: "/dashboard",
+        callbackURL: "/",
       });
     } catch (err) {
       console.error(err);
@@ -102,7 +107,6 @@ export default function SignUp() {
           {/* Form */}
           <form onSubmit={handleSignUp} className="space-y-4">
             
-            {/* Full Name Input - name="name" যোগ করা হয়েছে */}
             <Input
               type="text"
               name="name"
@@ -121,7 +125,6 @@ export default function SignUp() {
               startContent={<FiUser className="text-zinc-600 mr-1" size={16} />}
             />
 
-            {/* Email Input - name="email" যোগ করা হয়েছে */}
             <Input
               type="email"
               name="email"
@@ -140,7 +143,6 @@ export default function SignUp() {
               startContent={<FiMail className="text-zinc-600 mr-1" size={16} />}
             />
 
-            {/* Password Input - name="password" যোগ করা হয়েছে */}
             <Input
               type="password"
               name="password"

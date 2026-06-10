@@ -8,6 +8,7 @@ import Image from "next/image";
 import logo from '@/assets/images/logo.png';
 import { authClient } from "@/lib/auth-client";
 import { useRouter } from "next/navigation";
+import toast from "react-hot-toast";
 
 export default function SignIn() {
   const [loading, setLoading] = useState(false);
@@ -26,13 +27,14 @@ export default function SignIn() {
       const { data, error } = await authClient.signIn.email({
         email,
         password,
-        callbackURL: "/dashboard", 
+        callbackURL: "/", 
       });
 
       if (error) {
-        alert(error.message || "Invalid email or password!");
+        toast.error(error.message || "Invalid email or password!");
       } else {
-        router.push("/dashboard");
+        toast.success('Signin Successful')
+        router.push("/");
       }
     } catch (err) {
       console.error(err);
@@ -46,7 +48,7 @@ export default function SignIn() {
     try {
       await authClient.signIn.social({
         provider: "google",
-        callbackURL: "/dashboard",
+        callbackURL: "/",
       });
     } catch (err) {
       console.error(err);
