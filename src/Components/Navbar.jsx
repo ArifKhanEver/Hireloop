@@ -1,25 +1,71 @@
 'use client';
 
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { FiMenu, FiX } from "react-icons/fi";
 import logo from '@/assets/images/logo.png';
 import Image from "next/image";
 import Link from "next/link";
-import { authClient } from "@/lib/auth-client"; 
+import { authClient } from "@/lib/auth-client";
 import { useRouter } from "next/navigation";
 import toast from "react-hot-toast";
+import { motion, AnimatePresence } from "motion/react";
+
+// অ্যানিমেশন ভ্যারিয়েন্টস
+const containerVariants = {
+  hidden: {
+    opacity: 0,
+    y: -15,
+    scale: 0.95
+  },
+  visible: {
+    opacity: 1,
+    y: 0,
+    scale: 1,
+    transition: {
+      type: "spring",
+      stiffness: 300,
+      damping: 25,
+      staggerChildren: 0.08,
+      delayChildren: 0.05
+    }
+  },
+  exit: {
+    opacity: 0,
+    y: -15,
+    scale: 0.95,
+    transition: {
+      duration: 0.15,
+      ease: "easeIn"
+    }
+  }
+};
+
+const itemVariants = {
+  hidden: { opacity: 0, y: -10 },
+  visible: {
+    opacity: 1,
+    y: 0,
+    transition: { type: "spring", stiffness: 300, damping: 20 }
+  }
+};
 
 export default function Navbar() {
   const [isMenuOpen, setIsMenuOpen] = useState(false);
+  const [mounted, setMounted] = useState(false);
   const router = useRouter();
-  
+
+  const [hoveredTab, setHoveredTab] = useState(null);
   const { data: session } = authClient.useSession();
+
+  useEffect(() => {
+    setMounted(true);
+  }, []);
 
   const handleSignOut = async () => {
     try {
       await authClient.signOut();
       setIsMenuOpen(false);
-      router.push('/signin'); 
+      router.push('/signin');
     } catch (error) {
       toast.error("Sign out failed:", error);
     }
@@ -40,15 +86,67 @@ export default function Navbar() {
 
         {/* Right Side: Navigation Links & Actions (Desktop View) */}
         <div className="hidden md:flex items-center gap-6">
-          <ul className="flex items-center gap-7 text-[14px] font-normal text-zinc-400">
-            <li>
-              <Link href="/jobs" className="hover:text-white transition-colors duration-200">Browse Jobs</Link>
+          <ul className="flex items-center gap-7 text-[14px] font-normal text-zinc-400" onMouseLeave={() => setHoveredTab(null)}>
+            
+            {/* ১. Browse Jobs */}
+            <li 
+              className="relative cursor-pointer"
+              onMouseEnter={() => setHoveredTab('jobs')}
+            >
+              {/* padding এখন সরাসরি লিংকের ব্লকে দেওয়া যাতে পুরো এরিয়া জুড়েই ক্লিক কাজ করে */}
+              <Link href="/jobs" className="relative block py-2 px-3 hover:text-white transition-colors duration-200">
+                <span className="relative z-10">Browse Jobs</span>
+                {hoveredTab === 'jobs' && (
+                  <motion.div
+                    layoutId="desktopNavHover"
+                    className="absolute inset-0 bg-zinc-800/40 rounded-xl z-0 border border-zinc-800/30"
+                    initial={{ opacity: 0 }}
+                    animate={{ opacity: 1 }}
+                    exit={{ opacity: 0 }}
+                    transition={{ type: "spring", stiffness: 350, damping: 25 }}
+                  />
+                )}
+              </Link>
             </li>
-            <li>
-              <Link href="/company" className="hover:text-white transition-colors duration-200">Company</Link>
+
+            {/* ২. Company */}
+            <li 
+              className="relative cursor-pointer"
+              onMouseEnter={() => setHoveredTab('company')}
+            >
+              <Link href="/company" className="relative block py-2 px-3 hover:text-white transition-colors duration-200">
+                <span className="relative z-10">Company</span>
+                {hoveredTab === 'company' && (
+                  <motion.div
+                    layoutId="desktopNavHover"
+                    className="absolute inset-0 bg-zinc-800/40 rounded-xl z-0 border border-zinc-800/30"
+                    initial={{ opacity: 0 }}
+                    animate={{ opacity: 1 }}
+                    exit={{ opacity: 0 }}
+                    transition={{ type: "spring", stiffness: 350, damping: 25 }}
+                  />
+                )}
+              </Link>
             </li>
-            <li>
-              <Link href="/pricing" className="hover:text-white transition-colors duration-200">Pricing</Link>
+
+            {/* ৩. Pricing (ফিক্সড: missing অন-মাউস এন্টার যোগ করা হয়েছে) */}
+            <li 
+              className="relative cursor-pointer"
+              onMouseEnter={() => setHoveredTab('pricing')}
+            >
+              <Link href="/pricing" className="relative block py-2 px-3 hover:text-white transition-colors duration-200">
+                <span className="relative z-10">Pricing</span>
+                {hoveredTab === 'pricing' && (
+                  <motion.div
+                    layoutId="desktopNavHover"
+                    className="absolute inset-0 bg-zinc-800/40 rounded-xl z-0 border border-zinc-800/30"
+                    initial={{ opacity: 0 }}
+                    animate={{ opacity: 1 }}
+                    exit={{ opacity: 0 }}
+                    transition={{ type: "spring", stiffness: 350, damping: 25 }}
+                  />
+                )}
+              </Link>
             </li>
           </ul>
 
@@ -57,30 +155,32 @@ export default function Navbar() {
 
           {/* Auth Button Group */}
           <div className="flex items-center gap-6">
-            {session ? (
+            {mounted && session ? (
               <>
                 <span className="text-[14px] font-medium text-zinc-300 bg-zinc-900/40 px-3 py-1.5 rounded-lg border border-zinc-800/60">
                   {session.user?.name}
                 </span>
-                <button 
+                <button
                   onClick={handleSignOut}
                   className="text-[14px] font-medium text-zinc-400 hover:text-red-400 transition-colors duration-200"
                 >
                   Sign Out
                 </button>
               </>
-            ) : (
+            ) : mounted ? (
               <>
                 <Link href="/signin" className="text-[14px] font-medium text-[#5B51F9] hover:text-[#483EFF] transition-colors duration-200">
                   Sign In
                 </Link>
               </>
+            ) : (
+              <div className="w-12 h-5"></div>
             )}
 
             <Link href="#">
-              <button className="bg-[#5B51F9] hover:bg-[#483EFF] text-white font-medium text-sm px-6 py-3 rounded-xl transition-all duration-200 active:scale-95 shadow-md shadow-[#5B51F9]/10">
+              <motion.button whileTap={{ scale: 0.95 }} transition={{ type: "spring", stiffness: 400, damping: 15 }} className="bg-[#5B51F9] hover:bg-[#483EFF] text-white font-medium text-sm px-6 py-3 rounded-xl transition-all duration-200 active:scale-95 shadow-md shadow-[#5B51F9]/10 cursor-pointer">
                 Get Started
-              </button>
+              </motion.button>
             </Link>
           </div>
         </div>
@@ -97,54 +197,62 @@ export default function Navbar() {
         </div>
 
         {/* Mobile Dropdown Menu Panel */}
-        {isMenuOpen && (
-          <div className="absolute top-[90px] left-0 w-full bg-[#141416] border border-zinc-800/80 rounded-2xl p-6 flex flex-col gap-4 shadow-2xl md:hidden z-50 animate-in fade-in slide-in-from-top-2 duration-150">
-            <ul className="flex flex-col gap-4 text-base font-normal text-zinc-300">
-              <li>
-                <Link href="/jobs" className="block py-1 hover:text-white" onClick={() => setIsMenuOpen(false)}>Browse Jobs</Link>
-              </li>
-              <li>
-                <Link href="/company" className="block py-1 hover:text-white" onClick={() => setIsMenuOpen(false)}>Company</Link>
-              </li>
-              <li>
-                <Link href="/pricing" className="block py-1 hover:text-white" onClick={() => setIsMenuOpen(false)}>Pricing</Link>
-              </li>
+        <AnimatePresence>
+          {isMenuOpen && (
+            <motion.div
+              variants={containerVariants}
+              initial="hidden"
+              animate="visible"
+              exit="exit"
+              className="absolute top-[90px] left-0 w-full bg-[#141416] border border-zinc-800/80 rounded-2xl p-6 flex flex-col gap-4 shadow-2xl md:hidden z-50"
+            >
+              <motion.ul className="flex flex-col gap-4 text-base font-normal text-zinc-300">
+                <motion.li variants={itemVariants}>
+                  <Link href="/jobs" className="block py-1 hover:text-white" onClick={() => setIsMenuOpen(false)}>Browse Jobs</Link>
+                </motion.li>
+                <motion.li variants={itemVariants}>
+                  <Link href="/company" className="block py-1 hover:text-white" onClick={() => setIsMenuOpen(false)}>Company</Link>
+                </motion.li>
+                <motion.li variants={itemVariants}>
+                  <Link href="/pricing" className="block py-1 hover:text-white" onClick={() => setIsMenuOpen(false)}>Pricing</Link>
+                </motion.li>
 
-              {/* Divider for Mobile */}
-              <li className="h-[1px] w-full bg-zinc-800/50 my-1"></li>
+                {/* Divider for Mobile */}
+                <motion.li variants={itemVariants} className="h-[1px] w-full bg-zinc-800/50 my-1"></motion.li>
 
-              {session ? (
-                <>
-                  <li className="text-zinc-400 text-sm font-medium px-1">
-                    Logged in as: <span className="text-white block text-base mt-0.5">{session.user?.name}</span>
-                  </li>
-                  <li>
-                    <button 
-                      onClick={handleSignOut}
-                      className="w-full text-left py-1 text-red-400 font-medium transition-colors"
-                    >
-                      Sign Out
+                {mounted && session ? (
+                  <>
+                    <motion.li variants={itemVariants} className="text-zinc-400 text-sm font-medium px-1">
+                      Logged in as: <span className="text-white block text-base mt-0.5">{session.user?.name}</span>
+                    </motion.li>
+                    <motion.li variants={itemVariants}>
+                      <button
+                        onClick={handleSignOut}
+                        className="w-full text-left py-1 text-red-400 font-medium transition-colors"
+                      >
+                        Sign Out
+                      </button>
+                    </motion.li>
+                  </>
+                ) : mounted ? (
+                  <>
+                    <motion.li variants={itemVariants}>
+                      <Link href="/signin" className="block py-1 text-[#5B51F9] font-semibold" onClick={() => setIsMenuOpen(false)}>Sign In</Link>
+                    </motion.li>
+                  </>
+                ) : null}
+
+                <motion.li variants={itemVariants} className="pt-2">
+                  <Link href="#" onClick={() => setIsMenuOpen(false)}>
+                    <button className="w-full bg-[#5B51F9] text-white font-medium py-3 rounded-xl text-center block">
+                      Get Started
                     </button>
-                  </li>
-                </>
-              ) : (
-                <>
-                  <li>
-                    <Link href="/signin" className="block py-1 text-[#5B51F9] font-semibold" onClick={() => setIsMenuOpen(false)}>Sign In</Link>
-                  </li>
-                </>
-              )}
-
-              <li className="pt-2">
-                <Link href="#" onClick={() => setIsMenuOpen(false)}>
-                  <button className="w-full bg-[#5B51F9] text-white font-medium py-3 rounded-xl text-center block">
-                    Get Started
-                  </button>
-                </Link>
-              </li>
-            </ul>
-          </div>
-        )}
+                  </Link>
+                </motion.li>
+              </motion.ul>
+            </motion.div>
+          )}
+        </AnimatePresence>
 
       </nav>
     </div>
