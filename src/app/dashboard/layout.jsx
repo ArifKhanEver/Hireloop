@@ -5,7 +5,7 @@ const DashboardLayout = ({children}) => {
     return (
         <div className='flex gap-2 min-h-screen'>
             <DashboardSidebar></DashboardSidebar>
-            <div>{children}</div>
+            <div className='flex-1'>{children}</div>
         </div>
     );
 };
