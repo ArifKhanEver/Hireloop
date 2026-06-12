@@ -2,6 +2,9 @@
 import React, { useState } from 'react';
 import { Input, Button, Select, ListBox } from "@heroui/react";
 import { FiMapPin, FiGlobe } from "react-icons/fi";
+import { toast } from 'react-hot-toast';
+import { createJob } from '@/lib/actions/jobs';
+import { redirect } from 'next/navigation';
 
 const JobPostForm = () => {
     const categories = [
@@ -26,7 +29,8 @@ const JobPostForm = () => {
 
     const [linkedCompany, setLinkedCompany] = useState({
         name: "Dev Wonder",
-        logo: "https://via.placeholder.com/40",
+        id: 123,
+        logo: "https://devwonderbd.com/wp-content/uploads/2025/08/Dev-Wonder.png",
         industry: "Software Agency",
         isApproved: true,
         activeJobsUsed: 7,
@@ -47,19 +51,60 @@ const JobPostForm = () => {
         value: "text-white text-sm placeholder:text-zinc-600"
     };
 
-    const handleSubmit = (e) => {
+    const handleSubmit = async(e) => {
         e.preventDefault();
         
         const formData = new FormData(e.currentTarget);
         const formValues = Object.fromEntries(formData.entries());
         
+        if (!formValues.title || formValues.title.trim() === "") {
+            return toast.error("Job title is required!");
+        }
+        if (!formValues.category) {
+            return toast.error("Please select a job category!");
+        }
+        if (!formValues.jobType) {
+            return toast.error("Please select a job type!");
+        }
+        if (!formValues.salaryMin || !formValues.salaryMax) {
+            return toast.error("Both minimum and maximum salary are required!");
+        }
+        if (Number(formValues.salaryMin) < 0 || Number(formValues.salaryMax) < 0) {
+             return toast.error("Salary cannot be negative values!");
+        }
+        if (Number(formValues.salaryMin) > Number(formValues.salaryMax)) {
+            return toast.error("Minimum salary cannot be greater than maximum salary!");
+        }
+        if (!isRemote && (!formValues.location || formValues.location.trim() === "")) {
+            return toast.error("Location is required when job is not remote!");
+        }
+        if (!formValues.deadline) {
+            return toast.error("Application deadline is required!");
+        }
+        if (!formValues.responsibilities || formValues.responsibilities.trim() === "") {
+            return toast.error("Job responsibilities are required!");
+        }
+        if (!formValues.requirements || formValues.requirements.trim() === "") {
+            return toast.error("Job requirements are required!");
+        }
+
+
         const finalData = {
             ...formValues,
             isRemote: isRemote,
             companyName: linkedCompany.name,
+            companyId: linkedCompany.id,
+            status: 'active',
             location: isRemote ? "Fully Remote" : formValues.location
         };
 
+        const res = await createJob(finalData)
+        if(res.insertedId){
+            toast.success("Job posted successfully!");
+            e.target.reset()
+            setIsRemote(false)
+            redirect('/dashboard/recruiter')
+        }
         console.log("Submitted Job Data:", finalData);
     };
 
@@ -94,7 +139,7 @@ const JobPostForm = () => {
                 </div>
             </div>
 
-            <form className="max-w-4xl flex flex-col gap-8" onSubmit={handleSubmit}>
+            <form className="max-w-4xl flex flex-col gap-8" onSubmit={handleSubmit} noValidate>
 
                 {/* JOB INFORMATION SECTION */}
                 <div className="flex flex-col gap-6">
@@ -113,7 +158,6 @@ const JobPostForm = () => {
                                 variant="bordered"
                                 className="w-full py-3"
                                 radius="md"
-                                isRequired
                                 classNames={{
                                     inputWrapper: "h-11 border-zinc-800 bg-[#121214] data-[hover=true]:border-zinc-700 group-data-[focus=true]:border-zinc-700 transition-colors duration-150",
                                     input: "text-white placeholder:text-zinc-600 text-sm",
@@ -124,7 +168,7 @@ const JobPostForm = () => {
                         {/* Job Category Select */}
                         <div className="w-full">
                             <label className="text-zinc-200 font-medium text-sm mb-1.5 block">Job Category</label>
-                            <Select name="category" isRequired className="w-full">
+                            <Select name="category" className="w-full">
                                 <Select.Trigger className={selectClassNames.trigger}>
                                     <Select.Value className={selectClassNames.value} placeholder="Select an item" />
                                     <Select.Indicator />
@@ -152,7 +196,7 @@ const JobPostForm = () => {
                         {/* Job Type Select */}
                         <div className="w-full">
                             <label className="text-zinc-200 font-medium text-sm mb-1.5 block">Job Type</label>
-                            <Select name="jobType" isRequired className="w-full">
+                            <Select name="jobType" className="w-full">
                                 <Select.Trigger className={selectClassNames.trigger}>
                                     <Select.Value className={selectClassNames.value} placeholder="Select an item" />
                                     <Select.Indicator />
@@ -184,7 +228,6 @@ const JobPostForm = () => {
                                     placeholder="Min"
                                     variant="bordered"
                                     radius="md"
-                                    isRequired
                                     classNames={{ ...inputStyles, label: "hidden" }}
                                 />
                                 <Input
@@ -193,11 +236,10 @@ const JobPostForm = () => {
                                     placeholder="Max"
                                     variant="bordered"
                                     radius="md"
-                                    isRequired
                                     classNames={{ ...inputStyles, label: "hidden" }}
                                 />
                                 {/* Currency Select */}
-                                <Select name="currency" isRequired className="w-full">
+                                <Select name="currency" className="w-full">
                                     <Select.Trigger className={selectClassNames.trigger}>
                                         <Select.Value className={selectClassNames.value} placeholder="USD" />
                                         <Select.Indicator />
@@ -247,7 +289,6 @@ const JobPostForm = () => {
                                 variant="bordered"
                                 radius="md"
                                 className="w-full py-3"
-                                isRequired={!isRemote}
                                 classNames={{ ...inputStyles, label: "hidden" }}
                                 startContent={<FiGlobe className="text-zinc-600 mr-1" size={16} />}
                             />
@@ -264,7 +305,6 @@ const JobPostForm = () => {
                                 variant="bordered"
                                 className="w-full"
                                 radius="md"
-                                isRequired
                                 classNames={{
                                     inputWrapper: "h-11 border-zinc-800 bg-[#121214] data-[hover=true]:border-zinc-700 group-data-[focus=true]:border-zinc-700 transition-colors duration-150",
                                     input: "text-white placeholder:text-zinc-600 text-sm",
@@ -289,7 +329,6 @@ const JobPostForm = () => {
                             name="responsibilities"
                             placeholder="Outline the day-to-day tasks and key responsibilities for this role..."
                             rows={5}
-                            required
                             className="w-full border border-zinc-800 bg-[#121214] hover:border-zinc-700 focus:border-zinc-700 focus:outline-none transition-colors duration-150 rounded-lg p-3 text-white placeholder:text-zinc-600 text-sm resize-none"
                         />
                     </div>
@@ -303,7 +342,6 @@ const JobPostForm = () => {
                             name="requirements"
                             placeholder="List required skills, experience, certifications, or educational background..."
                             rows={5}
-                            required
                             className="w-full border border-zinc-800 bg-[#121214] hover:border-zinc-700 focus:border-zinc-700 focus:outline-none transition-colors duration-150 rounded-lg p-3 text-white placeholder:text-zinc-600 text-sm resize-none"
                         />
                     </div>
